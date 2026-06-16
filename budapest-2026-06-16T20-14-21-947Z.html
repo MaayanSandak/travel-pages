@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Budapest Travel Guide</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; color:#1a1a2e; background:#f5f5f7; line-height:1.6; }
+  header { background:linear-gradient(135deg,#16213e,#0f3460); color:#fff; padding:60px 24px; text-align:center; }
+  header h1 { font-size:48px; letter-spacing:1px; margin-bottom:16px; }
+  header p { font-size:18px; max-width:700px; margin:0 auto; opacity:.92; }
+  .wrap { max-width:1000px; margin:0 auto; padding:40px 24px; }
+  h2 { font-size:28px; margin-bottom:24px; color:#0f3460; }
+  .gallery { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:48px; }
+  .gallery div { width:100%; height:200px; border-radius:12px; background:#dfe3ea center/cover no-repeat; }
+  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:20px; margin-bottom:48px; }
+  .card { background:#fff; border-radius:14px; overflow:hidden; box-shadow:0 4px 14px rgba(0,0,0,.08); }
+  .card .img { width:100%; height:180px; background:#dfe3ea center/cover no-repeat; }
+  .card-body { padding:18px; }
+  .card-body h3 { font-size:18px; margin-bottom:8px; color:#16213e; }
+  .card-body p { font-size:14px; color:#555; }
+  #map { height:420px; border-radius:14px; box-shadow:0 4px 14px rgba(0,0,0,.08); background:#e8ebf0; }
+  footer { text-align:center; padding:30px; color:#888; font-size:13px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Budapest</h1>
+  <p>Budapest, the capital of Hungary, is a stunning city with a rich history and culture. The city is situated along the Danube River and is known for its beautiful architecture, thermal baths, and vibrant cultural scene. Visitors can explore the city's many landmarks, museums, and historical sites, and enjoy the local cuisine and entertainment.</p>
+</header>
+<div class="wrap">
+  <h2>Gallery</h2>
+  <div class="gallery" id="gallery"></div>
+  <h2>Top Attractions</h2>
+  <div class="cards" id="cards"></div>
+  <h2>Map of Attractions</h2>
+  <div id="map"></div>
+</div>
+<footer>Generated automatically with n8n + AI — Budapest Travel Guide</footer>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  const CITY = "Budapest";
+  const ATTR = [{"name":"Buda Castle","wiki":"Buda Castle","description":"A historic castle and palace complex that served as the residence of the Hungarian kings, now a UNESCO World Heritage Site. It features stunning architecture, museums, and beautiful gardens.","lat":47.4979,"lng":19.0402},{"name":"Széchenyi Thermal Bath","wiki":"Széchenyi thermal bath","description":"One of the largest and most famous thermal baths in Europe, offering a relaxing and rejuvenating experience in a beautiful setting. The bath features stunning architecture and a range of thermal pools and facilities.","lat":47.5186,"lng":19.0822},{"name":"Hungarian Parliament Building","wiki":"Hungarian Parliament Building","description":"A stunning example of neo-Gothic architecture, the Hungarian Parliament Building is one of the city's most iconic landmarks and a must-visit attraction. It features guided tours and stunning views of the city.","lat":47.5074,"lng":19.0451},{"name":"St. Stephen's Basilica","wiki":"St. Stephen's Basilica","description":"A beautiful and historic Catholic basilica that features stunning architecture, beautiful stained-glass windows, and a range of cultural and religious events. Visitors can climb to the top for panoramic views of the city.","lat":47.4989,"lng":19.0535},{"name":"Chain Bridge","wiki":"Széchenyi Chain Bridge","description":"A historic and iconic suspension bridge that spans the Danube River, offering stunning views of the city and the river. It is a popular spot for photos and a must-visit attraction for anyone visiting Budapest.","lat":47.4983,"lng":19.0404}];
+
+  async function wikiImage(title) {
+    try {
+      const t = encodeURIComponent(title.replace(/ /g,'_'));
+      const r = await fetch('https://en.wikipedia.org/api/rest_v1/page/summary/' + t);
+      if (!r.ok) return null;
+      const d = await r.json();
+      return (d.originalimage && d.originalimage.source) || (d.thumbnail && d.thumbnail.source) || null;
+    } catch(e) { return null; }
+  }
+
+  async function buildImages() {
+    const cards = document.getElementById('cards');
+    const gallery = document.getElementById('gallery');
+    const galleryImgs = [];
+    for (let i=0; i<ATTR.length; i++) {
+      const a = ATTR[i];
+      const img = await wikiImage(a.wiki);
+      const div = document.createElement('div');
+      div.className = 'card';
+      div.innerHTML =
+        '<div class="img" style="' + (img ? "background-image:url('" + img + "')" : '') + '"></div>' +
+        '<div class="card-body"><h3>' + (i+1) + '. ' + a.name + '</h3><p>' + a.description + '</p></div>';
+      cards.appendChild(div);
+      if (img) galleryImgs.push(img);
+    }
+    const cityImg = await wikiImage(CITY);
+    const all = [];
+    if (cityImg) all.push(cityImg);
+    galleryImgs.forEach(u => { if (all.length < 6) all.push(u); });
+    for (let i=0; i<Math.max(3, Math.min(all.length,6)); i++) {
+      const g = document.createElement('div');
+      if (all[i]) g.style.backgroundImage = "url('" + all[i] + "')";
+      gallery.appendChild(g);
+    }
+  }
+
+  function buildMap() {
+    const valid = ATTR.filter(m => typeof m.lat === 'number' && typeof m.lng === 'number');
+    const center = valid.length ? [valid[0].lat, valid[0].lng] : [0,0];
+    const map = L.map('map').setView(center, 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+    const group = [];
+    valid.forEach(m => { group.push(L.marker([m.lat, m.lng]).addTo(map).bindPopup(m.name)); });
+    if (group.length > 1) { map.fitBounds(L.featureGroup(group).getBounds().pad(0.2)); }
+    // Force Leaflet to recalc size after the page (and htmlpreview wrapper) settle.
+    setTimeout(function(){ map.invalidateSize(); }, 400);
+    setTimeout(function(){ map.invalidateSize(); }, 1200);
+  }
+
+  // Wait until Leaflet (L) is actually loaded before building the map.
+  // htmlpreview can reorder script execution, so we poll for L instead of trusting load order.
+  function whenLeafletReady(cb, tries) {
+    tries = tries || 0;
+    if (typeof L !== 'undefined' && L.map) { cb(); return; }
+    if (tries > 100) { console.error('Leaflet failed to load'); return; }
+    setTimeout(function(){ whenLeafletReady(cb, tries + 1); }, 100);
+  }
+
+  buildImages();
+  whenLeafletReady(buildMap);
+</script>
+</body>
+</html>
