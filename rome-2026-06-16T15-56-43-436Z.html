@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rome Travel Guide</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; color:#1a1a2e; background:#f5f5f7; line-height:1.6; }
+  header { background:linear-gradient(135deg,#16213e,#0f3460); color:#fff; padding:60px 24px; text-align:center; }
+  header h1 { font-size:48px; letter-spacing:1px; margin-bottom:16px; }
+  header p { font-size:18px; max-width:700px; margin:0 auto; opacity:.92; }
+  .wrap { max-width:1000px; margin:0 auto; padding:40px 24px; }
+  h2 { font-size:28px; margin-bottom:24px; color:#0f3460; }
+  .gallery { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:48px; }
+  .gallery div { width:100%; height:200px; border-radius:12px; background:#dfe3ea center/cover no-repeat; }
+  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:20px; margin-bottom:48px; }
+  .card { background:#fff; border-radius:14px; overflow:hidden; box-shadow:0 4px 14px rgba(0,0,0,.08); }
+  .card .img { width:100%; height:180px; background:#dfe3ea center/cover no-repeat; }
+  .card-body { padding:18px; }
+  .card-body h3 { font-size:18px; margin-bottom:8px; color:#16213e; }
+  .card-body p { font-size:14px; color:#555; }
+  #map { height:420px; border-radius:14px; box-shadow:0 4px 14px rgba(0,0,0,.08); }
+  footer { text-align:center; padding:30px; color:#888; font-size:13px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Rome</h1>
+  <p>Rome, the Eternal City, is a must-visit destination for any traveler. With its rich history, stunning architecture, and vibrant culture, Rome is a city that will leave you in awe. From the ancient ruins to the world-class museums, Rome has something to offer for everyone.</p>
+</header>
+<div class="wrap">
+  <h2>Gallery</h2>
+  <div class="gallery" id="gallery"></div>
+  <h2>Top Attractions</h2>
+  <div class="cards" id="cards"></div>
+  <h2>Map of Attractions</h2>
+  <div id="map"></div>
+</div>
+<footer>Generated automatically with n8n + AI — Rome Travel Guide</footer>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  const CITY = "Rome";
+  const ATTR = [{"name":"Colosseum","wiki":"Colosseum","description":"This ancient amphitheater is one of Rome's most iconic landmarks and a testament to the city's rich history. It hosted gladiatorial contests, animal hunts, and even sea battles.","lat":41.8902,"lng":12.4903},{"name":"Vatican City","wiki":"Vatican City","description":"The Vatican is an independent city-state located within Rome, home to numerous iconic landmarks, including St. Peter's Basilica and the Sistine Chapel. It is a center of Catholicism and a popular tourist destination.","lat":41.9029,"lng":12.4534},{"name":"Roman Forum","wiki":"Roman Forum","description":"The Roman Forum is a sprawling archaeological site that showcases the ruins of ancient Rome, including temples, basilicas, and markets. It is a must-visit destination for history buffs and anyone interested in exploring the city's ancient past.","lat":41.8925,"lng":12.4873},{"name":"Pantheon","wiki":"Pantheon, Rome","description":"The Pantheon is a magnificently preserved ancient temple that is now a popular tourist destination. It is known for its stunning architecture, including its large dome and oculus.","lat":41.8985,"lng":12.4764},{"name":"Trevi Fountain","wiki":"Trevi Fountain","description":"The Trevi Fountain is a beautiful baroque fountain that is one of Rome's most famous landmarks. According to legend, if you throw a coin into the fountain, you will one day return to Rome.","lat":41.9031,"lng":12.4833}];
+
+  // Fetch a Wikipedia lead image for a page title; returns image URL or null.
+  async function wikiImage(title) {
+    try {
+      const t = encodeURIComponent(title.replace(/ /g,'_'));
+      const r = await fetch('https://en.wikipedia.org/api/rest_v1/page/summary/' + t);
+      if (!r.ok) return null;
+      const d = await r.json();
+      return (d.originalimage && d.originalimage.source) || (d.thumbnail && d.thumbnail.source) || null;
+    } catch(e) { return null; }
+  }
+
+  // Build attraction cards
+  (async () => {
+    const cards = document.getElementById('cards');
+    const gallery = document.getElementById('gallery');
+    const galleryImgs = [];
+
+    for (let i=0; i<ATTR.length; i++) {
+      const a = ATTR[i];
+      const img = await wikiImage(a.wiki);
+      const div = document.createElement('div');
+      div.className = 'card';
+      div.innerHTML =
+        '<div class="img" style="' + (img ? "background-image:url('" + img + "')" : '') + '"></div>' +
+        '<div class="card-body"><h3>' + (i+1) + '. ' + a.name + '</h3><p>' + a.description + '</p></div>';
+      cards.appendChild(div);
+      if (img) galleryImgs.push(img);
+    }
+
+    // Gallery: city image + first attraction images (at least 3 tiles)
+    const cityImg = await wikiImage(CITY);
+    const all = [];
+    if (cityImg) all.push(cityImg);
+    galleryImgs.forEach(u => { if (all.length < 6) all.push(u); });
+    for (let i=0; i<Math.max(3, Math.min(all.length,6)); i++) {
+      const g = document.createElement('div');
+      if (all[i]) g.style.backgroundImage = "url('" + all[i] + "')";
+      gallery.appendChild(g);
+    }
+  })();
+
+  // Build map
+  const valid = ATTR.filter(m => typeof m.lat === 'number' && typeof m.lng === 'number');
+  const center = valid.length ? [valid[0].lat, valid[0].lng] : [0,0];
+  const map = L.map('map').setView(center, 12);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(map);
+  const group = [];
+  valid.forEach(m => { group.push(L.marker([m.lat, m.lng]).addTo(map).bindPopup(m.name)); });
+  if (group.length > 1) { map.fitBounds(L.featureGroup(group).getBounds().pad(0.2)); }
+</script>
+</body>
+</html>
