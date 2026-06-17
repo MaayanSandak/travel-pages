@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kfar Saba Travel Guide</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; color:#1a1a2e; background:#f5f5f7; line-height:1.6; }
+  header { background:linear-gradient(135deg,#16213e,#0f3460); color:#fff; padding:60px 24px; text-align:center; }
+  header h1 { font-size:48px; letter-spacing:1px; margin-bottom:16px; }
+  header p { font-size:18px; max-width:700px; margin:0 auto; opacity:.92; }
+  .wrap { max-width:1000px; margin:0 auto; padding:40px 24px; }
+  h2 { font-size:28px; margin-bottom:24px; color:#0f3460; }
+  .gallery { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:48px; }
+  .gallery div { width:100%; height:200px; border-radius:12px; background:#dfe3ea center/cover no-repeat; }
+  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:20px; margin-bottom:48px; }
+  .card { background:#fff; border-radius:14px; overflow:hidden; box-shadow:0 4px 14px rgba(0,0,0,.08); }
+  .card .img { width:100%; height:180px; background:#dfe3ea center/cover no-repeat; }
+  .card-body { padding:18px; }
+  .card-body h3 { font-size:18px; margin-bottom:8px; color:#16213e; }
+  .card-body p { font-size:14px; color:#555; }
+  #map { height:420px; border-radius:14px; box-shadow:0 4px 14px rgba(0,0,0,.08); background:#e8ebf0; }
+  footer { text-align:center; padding:30px; color:#888; font-size:13px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Kfar Saba</h1>
+  <p>Kfar Saba is a charming city located in the Sharon region of Israel, known for its rich history, cultural landmarks, and beautiful parks. Visitors can explore the city's historic sites, enjoy the local cuisine, and experience the warm hospitality of its residents. From ancient ruins to modern attractions, Kfar Saba has something to offer for every kind of traveler.</p>
+</header>
+<div class="wrap">
+  <h2>Gallery</h2>
+  <div class="gallery" id="gallery"></div>
+  <h2>Top Attractions</h2>
+  <div class="cards" id="cards"></div>
+  <h2>Map of Attractions</h2>
+  <div id="map"></div>
+</div>
+<footer>Generated automatically with n8n + AI — Kfar Saba Travel Guide</footer>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  const CITY = "Kfar Saba";
+  const ATTR = [{"name":"Kfar Saba Park","wiki":"Kfar Saba","description":"A large public park with walking trails, playgrounds, and plenty of green spaces for picnics and relaxation. The park is a popular spot for both locals and tourists.","lat":32.184444,"lng":34.911111},{"name":"Tel Afek","wiki":"Antipatris","description":"An ancient city ruin with a rich history dating back to the Roman era, featuring impressive archaeological remains and stunning views of the surrounding landscape.","lat":32.133333,"lng":34.933333},{"name":"Mall Kfar Saba","wiki":"Kfar Saba","description":"A modern shopping mall offering a wide range of stores, restaurants, and entertainment options for visitors of all ages.","lat":32.165556,"lng":34.920556},{"name":"Kfar Saba Museum","wiki":"Kfar Saba","description":"A museum showcasing the history and culture of Kfar Saba, with exhibits featuring artifacts, photographs, and personal stories from the city's past.","lat":32.176111,"lng":34.905556},{"name":"Meir Hospital","wiki":"Meir Medical Center","description":"A major hospital serving the city and surrounding region, known for its high-quality medical care and innovative treatments.","lat":32.163056,"lng":34.893056}];
+
+  async function wikiImage(title) {
+    try {
+      const t = encodeURIComponent(title.replace(/ /g,'_'));
+      const r = await fetch('https://en.wikipedia.org/api/rest_v1/page/summary/' + t);
+      if (!r.ok) return null;
+      const d = await r.json();
+      return (d.originalimage && d.originalimage.source) || (d.thumbnail && d.thumbnail.source) || null;
+    } catch(e) { return null; }
+  }
+
+  async function buildImages() {
+    const cards = document.getElementById('cards');
+    const gallery = document.getElementById('gallery');
+    const galleryImgs = [];
+    for (let i=0; i<ATTR.length; i++) {
+      const a = ATTR[i];
+      const img = await wikiImage(a.wiki);
+      const div = document.createElement('div');
+      div.className = 'card';
+      div.innerHTML =
+        '<div class="img" style="' + (img ? "background-image:url('" + img + "')" : '') + '"></div>' +
+        '<div class="card-body"><h3>' + (i+1) + '. ' + a.name + '</h3><p>' + a.description + '</p></div>';
+      cards.appendChild(div);
+      if (img) galleryImgs.push(img);
+    }
+    const cityImg = await wikiImage(CITY);
+    const all = [];
+    if (cityImg) all.push(cityImg);
+    galleryImgs.forEach(u => { if (all.length < 6) all.push(u); });
+    for (let i=0; i<Math.max(3, Math.min(all.length,6)); i++) {
+      const g = document.createElement('div');
+      if (all[i]) g.style.backgroundImage = "url('" + all[i] + "')";
+      gallery.appendChild(g);
+    }
+  }
+
+  function buildMap() {
+    const valid = ATTR.filter(m => typeof m.lat === 'number' && typeof m.lng === 'number');
+    const center = valid.length ? [valid[0].lat, valid[0].lng] : [0,0];
+    const map = L.map('map').setView(center, 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+    const group = [];
+    valid.forEach(m => { group.push(L.marker([m.lat, m.lng]).addTo(map).bindPopup(m.name)); });
+    if (group.length > 1) { map.fitBounds(L.featureGroup(group).getBounds().pad(0.2)); }
+    // Force Leaflet to recalc size after the page (and htmlpreview wrapper) settle.
+    setTimeout(function(){ map.invalidateSize(); }, 400);
+    setTimeout(function(){ map.invalidateSize(); }, 1200);
+  }
+
+  // Wait until Leaflet (L) is actually loaded before building the map.
+  // htmlpreview can reorder script execution, so we poll for L instead of trusting load order.
+  function whenLeafletReady(cb, tries) {
+    tries = tries || 0;
+    if (typeof L !== 'undefined' && L.map) { cb(); return; }
+    if (tries > 100) { console.error('Leaflet failed to load'); return; }
+    setTimeout(function(){ whenLeafletReady(cb, tries + 1); }, 100);
+  }
+
+  buildImages();
+  whenLeafletReady(buildMap);
+</script>
+</body>
+</html>
