@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jerusalem Travel Guide</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Segoe UI',Arial,sans-serif;color:#1a1a2e;background:#f5f5f7;line-height:1.6;}
+  header{background:linear-gradient(135deg,#16213e,#0f3460);color:#fff;padding:60px 24px;text-align:center;}
+  header h1{font-size:48px;letter-spacing:1px;margin-bottom:16px;}
+  header p{font-size:18px;max-width:700px;margin:0 auto;opacity:.92;}
+  .wrap{max-width:1000px;margin:0 auto;padding:40px 24px;}
+  h2{font-size:28px;margin-bottom:24px;color:#0f3460;}
+  .gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:48px;}
+  .gallery div{width:100%;height:200px;border-radius:12px;background:#dfe3ea center/cover no-repeat;}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;margin-bottom:48px;}
+  .card{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,.08);}
+  .card .img{width:100%;height:180px;background:#dfe3ea center/cover no-repeat;}
+  .card-body{padding:18px;}
+  .card-body h3{font-size:18px;margin-bottom:8px;color:#16213e;}
+  .card-body p{font-size:14px;color:#555;}
+  #map{height:420px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.08);background:#e8ebf0;}
+  footer{text-align:center;padding:30px;color:#888;font-size:13px;}
+</style>
+</head>
+<body>
+<header><h1>Jerusalem</h1><p>Israel, a country with a rich history and diverse culture, offers countless opportunities for exploration. From the ancient city of Jerusalem to the vibrant beaches of Tel Aviv, Israel has something for everyone. With its unique blend of tradition and modernity, Israel is a must-visit destination for any traveler.</p></header>
+<div class="wrap">
+  <h2>Gallery</h2>
+  <div class="gallery"><div style="background-image:url('https://images.unsplash.com/photo-1763966461585-41a652f12dd3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5Nzk1NTR8MHwxfHNlYXJjaHwxfHxKZXJ1c2FsZW0lMjBsYW5kbWFyayUyMGNpdHl8ZW58MXwwfHx8MTc4MTcxMjQwMHww&ixlib=rb-4.1.0&q=80&w=1080')"></div><div style="background-image:url('https://images.unsplash.com/photo-1768594617447-62dfe3f88c3e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5Nzk1NTR8MHwxfHNlYXJjaHwyfHxKZXJ1c2FsZW0lMjBsYW5kbWFyayUyMGNpdHl8ZW58MXwwfHx8MTc4MTcxMjQwMHww&ixlib=rb-4.1.0&q=80&w=1080')"></div><div style="background-image:url('https://images.unsplash.com/photo-1768594875306-9dd662f37189?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5Nzk1NTR8MHwxfHNlYXJjaHwzfHxKZXJ1c2FsZW0lMjBsYW5kbWFyayUyMGNpdHl8ZW58MXwwfHx8MTc4MTcxMjQwMHww&ixlib=rb-4.1.0&q=80&w=1080')"></div></div>
+  <h2>Top Attractions</h2>
+  <div class="cards">
+    <div class="card">
+      <div class="img" style="background-image:url('https://images.unsplash.com/photo-1768594980572-539bfd1bb326?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5Nzk1NTR8MHwxfHNlYXJjaHw0fHxKZXJ1c2FsZW0lMjBsYW5kbWFyayUyMGNpdHl8ZW58MXwwfHx8MTc4MTcxMjQwMHww&ixlib=rb-4.1.0&q=80&w=1080')"></div>
+      <div class="card-body"><h3>1. Western Wall</h3><p>The Western Wall, also known as the Wailing Wall, is a sacred site in Jerusalem and one of the most significant landmarks in the Jewish faith. It is a remnant of the ancient Second Temple complex.</p></div>
+    </div>
+    <div class="card">
+      <div class="img" style="background-image:url('https://images.unsplash.com/photo-1768306444082-94ed8048ebe2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5Nzk1NTR8MHwxfHNlYXJjaHw1fHxKZXJ1c2FsZW0lMjBsYW5kbWFyayUyMGNpdHl8ZW58MXwwfHx8MTc4MTcxMjQwMHww&ixlib=rb-4.1.0&q=80&w=1080')"></div>
+      <div class="card-body"><h3>2. Dome of the Rock</h3><p>The Dome of the Rock is a prominent Islamic shrine and one of the most recognizable landmarks in Jerusalem, known for its stunning golden dome and rich history. It is located on the Temple Mount, a site considered holy by Jews, Muslims, and Christians.</p></div>
+    </div>
+    <div class="card">
+      <div class="img" style="background-image:url('https://images.unsplash.com/photo-1763966287576-a1b49fca6bf1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5Nzk1NTR8MHwxfHNlYXJjaHw2fHxKZXJ1c2FsZW0lMjBsYW5kbWFyayUyMGNpdHl8ZW58MXwwfHx8MTc4MTcxMjQwMHww&ixlib=rb-4.1.0&q=80&w=1080')"></div>
+      <div class="card-body"><h3>3. Masada</h3><p>Masada is an ancient fortress situated atop a rocky plateau, overlooking the Dead Sea. It is a UNESCO World Heritage Site and a symbol of Jewish resistance against the Roman Empire.</p></div>
+    </div>
+    <div class="card">
+      <div class="img" style="background-image:url('https://images.unsplash.com/photo-1768594875334-a727248659ec?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5Nzk1NTR8MHwxfHNlYXJjaHw3fHxKZXJ1c2FsZW0lMjBsYW5kbWFyayUyMGNpdHl8ZW58MXwwfHx8MTc4MTcxMjQwMHww&ixlib=rb-4.1.0&q=80&w=1080')"></div>
+      <div class="card-body"><h3>4. Church of the Holy Sepulchre</h3><p>The Church of the Holy Sepulchre is a significant Christian site in Jerusalem, believed to be the location of Jesus' crucifixion, burial, and resurrection. It is a major pilgrimage site for Christians from around the world.</p></div>
+    </div>
+    <div class="card">
+      <div class="img" style="background-image:url('https://images.unsplash.com/photo-1768594617428-3a4eb4597d95?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5Nzk1NTR8MHwxfHNlYXJjaHw4fHxKZXJ1c2FsZW0lMjBsYW5kbWFyayUyMGNpdHl8ZW58MXwwfHx8MTc4MTcxMjQwMHww&ixlib=rb-4.1.0&q=80&w=1080')"></div>
+      <div class="card-body"><h3>5. Tel Aviv Beach</h3><p>Tel Aviv Beach is a popular destination for beachgoers and sun-seekers, offering a vibrant and lively atmosphere, with plenty of restaurants, bars, and water sports. It is one of the most iconic beaches in Israel.</p></div>
+    </div></div>
+  <h2>Map of Attractions</h2>
+  <div id="map"></div>
+</div>
+<footer>Generated automatically with n8n + AI — Jerusalem Travel Guide · Photos via Unsplash</footer>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  const ATTR = [{"name":"Western Wall","lat":31.7767,"lng":35.2344},{"name":"Dome of the Rock","lat":31.7781,"lng":35.2354},{"name":"Masada","lat":31.3254,"lng":35.3533},{"name":"Church of the Holy Sepulchre","lat":31.7789,"lng":35.2294},{"name":"Tel Aviv Beach","lat":32.0739,"lng":34.7683}];
+  function whenLeafletReady(cb, t){ t=t||0; if(typeof L!=='undefined'&&L.map){cb();return;} if(t>100){return;} setTimeout(function(){whenLeafletReady(cb,t+1);},100); }
+  function buildMap(){
+    const valid = ATTR.filter(m => typeof m.lat==='number' && typeof m.lng==='number');
+    const center = valid.length ? [valid[0].lat, valid[0].lng] : [0,0];
+    const map = L.map('map').setView(center, 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap contributors'}).addTo(map);
+    const g=[];
+    valid.forEach(m=>{ g.push(L.marker([m.lat,m.lng]).addTo(map).bindPopup(m.name)); });
+    if(g.length>1){ map.fitBounds(L.featureGroup(g).getBounds().pad(0.2)); }
+    setTimeout(function(){map.invalidateSize();},400);
+    setTimeout(function(){map.invalidateSize();},1200);
+  }
+  window.addEventListener('load', function(){ whenLeafletReady(buildMap); });
+</script>
+</body>
+</html>
